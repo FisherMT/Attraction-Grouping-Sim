@@ -1,0 +1,405 @@
+// Online C++ compiler to run C++ program online
+#include <iostream>
+#include <random>
+#include <cstdlib>
+#include <ctime>
+
+//initialize vehicle matrix
+    int vehicle_1[6][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, 
+                          {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0} };
+    int vehicle_2[6][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, 
+                          {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0} };
+
+//Party class definitions
+class party {
+  public:
+    int fifty_two;
+    int small_child;
+    int size;
+};
+
+
+bool valid_row(int assign){
+    if(assign<1 || assign>6){
+        while(assign<1 || assign>6){
+        std::cout <<  "Invalid row selected, please input a valid row.\n";
+        std::cin >> assign;
+        assign--;
+        }
+    }
+    return true;
+}
+
+int count_empties(int current){
+    int empties = 0;
+    for(int i=0; i<6; i++){
+        for(int j=0; j<4; j++){
+            if(current == 1 && vehicle_1[i][j] != 1){
+                empties++;
+            }
+            else if(current == 2 && vehicle_2[i][j] != 1){
+                empties++;
+            }
+        }
+    }
+    return empties;
+}
+
+//prints the seating chart of the vehicle
+void print_vehicle(int current) {
+    std::cout << "-----------------------------------";
+    std::cout << "\nCurrent seating chart: \n";
+    if(current == 1){
+        for(int k = 0; k<6; k++){
+            std::cout << "\nrow " << k+1 << ":    ";
+                for(int l = 0; l<4; l++){
+                    std::cout << vehicle_1[k][l] << " ";
+                }
+        std::cout << "\n";
+        }
+    }
+    std::cout << "-----------------------------------\n\n";
+    return; 
+}
+
+//simulates a dispatch by emptying selected vehicle matrix
+void empty_vehicle(int current){
+    if(current==1){
+        for(int i=0; i<6; i++){
+            for(int j=0; j<4; j++){
+                vehicle_1[i][j] = 0;
+            }
+        }
+    
+    }
+    else if(current==2){
+        for(int i=0; i<6; i++){
+            for(int j=0; j<4; j++){
+                vehicle_1[i][j] = 0;
+            }
+        }
+    }
+    return;
+}
+
+//looks through the assigned row and counts the empty seats
+//if empty >= size, return true
+//if party cannot fit, prompts the user for a new row assignment
+void can_fit(int assign, int size, int current) {
+    
+    int empty = 0;
+    bool valid = false;
+    while(valid !=true){
+        //checks row is 1-6
+        if(assign<1 || assign>6){
+            while(assign<1 || assign>6){
+            std::cout <<  "Invalid row selected, please input a number 1-6.\n";
+            std::cin >> assign;
+            }
+            assign--;
+        }
+        
+        //if valid row, count empties to ensure space
+        else{
+            assign--;
+            
+            //empty counter
+            for(int j = 0; j<4; j++){
+                if(current == 1 && vehicle_1[assign][j] != 1){
+                    empty++;
+                }
+                else if(current == 2 && vehicle_2[assign][j] != 1){
+                    empty++;
+                }
+            }
+        }
+        
+        if(empty < size){
+            std::cout << size << " people will not fit in row " << assign + 1 << "!\n";
+            std::cout << "Please input a new row selection.\n";
+            std::cin >> assign;
+        }
+            
+        else if(empty >= size){
+            valid = true;
+        }
+    }
+    return;
+}
+
+
+//fills assigned row with group size in selected vehicle
+//and prints confirmation
+void fill_row(int assign, int size, int current){
+    assign--;
+    int remain = size;
+    int j = 0;
+    
+    //fill matrix
+    while(j<4 && remain > 0){
+        if(current == 1 && vehicle_1[assign][j] != 1){
+            vehicle_1[assign][j] = 1;
+            remain--;
+            j++;
+        }
+        else if(current == 2){
+            vehicle_2[assign][j] = 1;
+            remain--;
+            j++;
+        }
+    }
+    
+    //prints confirmation
+    std::cout << size << " people sent to row " << assign + 1 << ".\n";
+    
+    //fills single empty seats
+    if(size == 3){
+        std::cout << "single rider called to row " << assign + 1 << ".\n";
+        remain = 1;
+        while(j<4 && remain > 0){
+            if(current == 1 && vehicle_1[assign][j] != 1){
+                vehicle_1[assign][j] = 1;
+                remain--;
+                j++;
+            }
+        }
+    }
+    print_vehicle(1);
+    return;
+}
+    
+
+//function to fill multiple rows if a party is larger than 4
+void multi_fill(int size, int current){
+    int remain = size;
+    int assign;
+    int split;
+    int last_assign = -1;
+    
+    std::cout << "They will need to be seated across multiple rows.\n";
+    while(remain > 0){
+        
+        //checks if this is the first split for the party
+        //asks for row then split
+        if(last_assign == -1){
+            std::cout << "Which row for this split?.\n";
+            std::cin >> assign;
+            std::cout << "How many of the party of " << size << " to row " << assign; 
+            std::cout << "?\n";
+            std::cin >> split;
+        }
+        
+        //if not first time, but size > 4
+        //ask row and split
+        else if(last_assign != -1 && remain > 4){
+            std::cout << remain << " people left in the party.\n";
+            std::cout << "Which row for this split?.\n";
+            std::cin >> assign;
+            std::cout << "How many of the remaining " << remain << " to row " << assign;
+            std::cout << "?\n";
+            std::cin >> split;
+        }
+        
+        //if remaining can fit in one row
+        //only prompt for row
+        else if(last_assign != -1 && remain <= 4){
+            std::cout << "There's " << remain << " left. Which row should they go to?\n";
+            std::cin >> assign;
+            split = remain;
+        }
+        
+        //splitting size checks
+        if(split>size){
+            std::cout << "You cannot split the group into more than there were.\n ";
+            std::cout << "Try again.\n";
+        }
+        else if(split>4){
+            std::cout << "Too many people!\n ";
+            std::cout << "The party must be split into groups of 2-4.\n ";
+            std::cout << "Try again.\n";
+        }
+        else if(split==1){
+            std::cout << "Nobody should have to ride alone! \n";
+            std::cout << "The party must be split into groups of 2-4.\n ";
+            std::cout << "Try again.\n";
+        }
+        else if (split==0){
+            std::cout << "0 is not a split!\n";
+            std::cout << "The party must be split into groups of 2-4.\n ";
+            std::cout << "Try again.\n";
+        }
+        else if (split<0){
+            std::cout << "you cannot have negative people.\n";
+            std::cout << "The party must be split into groups of 2-4.\n ";
+            std::cout << "Try again.\n";
+        }
+        else if (remain-split == 1){
+            std::cout << "Someone would have to ride alone after that split!\n";
+            std::cout << "The party must be split into groups of 2-4.\n ";
+            std::cout << "Try again.\n";
+        }
+        
+        //if split is valid
+        else{
+            can_fit(assign, split, 1);
+            fill_row(assign, split, 1);
+            remain -= split;
+            last_assign = assign;
+            
+            /* //if first split
+            if(last_assign == -1){
+                can_fit(assign, split, 1);
+                fill_row(assign, split, 1);
+                remain -= split;
+                last_assign = assign;
+            }
+           
+            //if not first split, check that the group is seated in adjacent rows
+            else if(last_assign !=-1){
+                //if not adjacent, reprompt until true
+                if(last_assign-assign != 1 || last_assign-assign !=-1){
+                    while (last_assign-assign != 1 || last_assign-assign !=-1){
+                        std::cout << "Your groups should be seated close together.\n";
+                        std::cout << "Please choose a row adjacent to " << last_assign;
+                        std::cout << "\n";
+                        std::cin >> assign;
+                    }
+                    
+                    //now adjacent, fill
+                    can_fit(assign, split, 1);
+                    fill_row(assign, split, 1);
+                    remain -= split;
+                    last_assign = assign;
+                }
+                
+                //if adjacent, fill
+                else if(last_assign-assign == 1 || last_assign-assign == -1){
+                can_fit(assign, split, 1);
+                fill_row(assign, split, 1);
+                remain -= split;
+                last_assign = assign;
+                }
+            }
+            
+            */
+        }
+    }
+    return;
+}
+
+//Main function
+int main() {
+    
+    std::srand(std::time(0));
+    
+    std::cout << "Welcome to the grouping simulator!\n";
+    std::cout << "\n\n-------------------------------------------------------\n\n";
+    
+    //variables
+    party nextParty;
+    int row_assign;
+    
+    //initializes first party
+    nextParty.size =  std::rand() % 8 + 2;
+    nextParty.fifty_two = std::rand() % 100 + 1;
+    nextParty.small_child = std::rand() % 100 + 1;
+    
+    for(int i = 0; i<50; i++){
+        
+        while(count_empties(1)>nextParty.size){
+            
+            std::cout << "This party has " << nextParty.size << " people.\n";
+            //for parties that can fit in a single row
+            if(nextParty.size <= 4){
+            
+                //For fifty two & small children
+                if(nextParty.fifty_two < 10 && nextParty.small_child < 10){
+                    std::cout << "It also contains a fifty two and a small child\n";
+                    std::cout << "which row would you like to seat them in?\n";
+                    std::cin >> row_assign;
+                
+                    can_fit(row_assign, nextParty.size, 1);
+                    fill_row(row_assign, nextParty.size, 1);
+                }
+            
+                //For fifty two
+                else if(nextParty.fifty_two < 10){
+                    std::cout << "It contains a fifty two \n";
+                    std::cout << "Which row would you like to seat them in?\n";
+                    std::cin >> row_assign;
+                
+                    can_fit(row_assign, nextParty.size, 1);
+                    fill_row(row_assign, nextParty.size, 1);
+                }
+            
+                //For small child
+                else if(nextParty.small_child < 1){
+                    std::cout << "It contains a small child \n";
+                    std::cout << "Which row would you like to seat them in?\n";
+                    std::cin >> row_assign;
+                
+                    can_fit(row_assign, nextParty.size, 1);
+                    fill_row(row_assign, nextParty.size, 1);
+                }
+                
+                else{
+                    std::cout << "Which row would you like to seat them in?\n";
+                    std::cin >> row_assign;
+                
+                    can_fit(row_assign, nextParty.size, 1);
+                    fill_row(row_assign, nextParty.size, 1);
+                }
+            
+            }
+        
+        
+            if(nextParty.size > 4){
+            
+                //For fifty two & small children
+                if(nextParty.fifty_two < 10 && nextParty.small_child < 10){
+                    std::cout << "It also contains a fifty two and a small child\n";
+                
+                    multi_fill(nextParty.size, 1);
+                
+                    std::cout << "Current seating chart: \n "; 
+                    print_vehicle(1);
+                }
+            
+                //For fifty two
+                else if(nextParty.fifty_two < 10){
+                    std::cout << "It contains a fifty two \n";
+                
+                    multi_fill(nextParty.size, 1);
+                
+                    std::cout << "Current seating chart: \n "; 
+                    print_vehicle(1);
+                }
+            
+                //For small child
+                else if(nextParty.small_child < 10){
+                    std::cout << "It contains a small child \n";
+                
+                    multi_fill(nextParty.size, 1);
+                }
+                else{
+                    multi_fill(nextParty.size, 1);
+                }
+            }
+            
+            //generates a new party
+            nextParty.size =  std::rand() % 8 + 2;
+            nextParty.fifty_two = std::rand() % 100 + 1;
+            nextParty.small_child = std::rand() % 100 + 1;
+        }
+        
+        
+        
+        if(count_empties(1)<nextParty.size){
+            std::cout << "The next party will not fit on the vehicle.\n";
+            std::cout << "Vehicle dispatched with " << count_empties(1) << " empties.\n";
+            empty_vehicle(1);
+        }
+    }
+
+    return 0;
+}
